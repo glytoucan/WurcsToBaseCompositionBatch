@@ -1,0 +1,20 @@
+version: '2'
+services:
+  data:
+    image: glycoinfo.org:5000/glytoucan_wurcstocomposition:v${VERSION}
+    command: echo "binaries ready"
+    volumes:
+      - /data
+  batch:
+    image: java:8u91-jdk
+    working_dir: /data
+    command: java -jar ${PROJECT_FILE}-${VERSION}.jar
+    volumes:
+      - /home/jenkins/batch/${PROJECT_FILE}:/root/batch/${PROJECT_FILE}
+    volumes_from:
+      - data
+    environment:
+      - PROJECT=${PROJECT_NAME}
+      - HOME=/root/batch/${PROJECT_NAME}
+      - SPRING_TRIPLESTORE_URL
+      - SPRING_TRIPLESTORE_PASSWORD

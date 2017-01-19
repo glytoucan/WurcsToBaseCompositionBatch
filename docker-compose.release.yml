@@ -1,0 +1,15 @@
+version: '2'
+services:
+  data:
+    build: $DOCKER_PATH/docker-release
+    image: glycoinfo.org:5000/glytoucan_wurcstobasecomposition:v${VERSION}
+    container_name: glytoucanWurcsToBaseCompositionv${VERSION}
+    volumes:
+      - ${WORKSPACE_PARENT}/${WORKSPACE}:/workspace/${PROJECT_NAME}
+    environment:
+      - GTC_VERSION
+      - PROJECT_NAME
+      - PROJECT_FOLDER
+      - PROJECT_FILE
+      - VERSION_NUMBER
+      - EXTENSION
