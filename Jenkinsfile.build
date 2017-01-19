@@ -1,0 +1,45 @@
+node {
+
+  PROJECT="docker-basecomposition-build"
+  WORKSPACE_PARENT="/srv/jenkins"
+  WORKSPACE="workspace"
+  VERSION="1.2.1-SNAPSHOT"
+  PROJECT_PATH=WORKSPACE_PARENT + "/" + WORKSPACE + "/" + PROJECT
+  ARTIFACTID='basecomposition'
+  PROJECT_FILE='basecomposition'
+  PROJECT_NAME='WurcsToBaseCompositionBatch'
+
+  stage PROJECT + ' version ' + VERSION + ' start'
+
+  stage 'git clone'
+  git 'https://github.com/glytoucan/WurcsToBaseCompositionBatch.git'
+
+  stage 'build jar'
+  docker.image('maven:3.3.3-jdk-8').inside {
+      writeFile file: 'settings.xml', text: "<settings><localRepository>${pwd()}/.m2repo</localRepository></settings>"
+        sh 'mvn -DskipTests=true -B -U -s settings.xml clean package'
+  }
+
+  stage 'package jar'
+  //   basecomposition-1.2.1-SNAPSHOT.jar
+  docker.image('aokinobu/java-release:0.0.1-SNAPSHOT').pull()
+  def c = docker.image('aokinobu/java-release:0.0.1-SNAPSHOT').run('-e PROJECT_FOLDER=target/ -e PROJECT_FILE=' + PROJECT_FILE + ' -e PROJECT_NAME=' + PROJECT_NAME + ' -e VERSION_NUMBER=-' + VERSION + ' -e EXTENSION=.jar -v ' + PROJECT_PATH + ':/workspace --workdir=/workspace', '/run.sh')
+  sh 'docker logs ' + c.id
+
+  stage 'sleep'
+  sleep 10
+
+  stage 'docker commit'
+  sh 'docker commit ' + c.id + ' ' + ARTIFACTID
+
+  stage 'docker push'
+  docker.withRegistry('http://glycoinfo.org:5000') {
+      docker.image(ARTIFACTID).push(VERSION)
+  }
+
+  stage 'docker stop container'
+  sh 'docker stop ' + c.id
+
+  stage 'docker rm container'
+  sh 'docker rm ' + c.id
+}

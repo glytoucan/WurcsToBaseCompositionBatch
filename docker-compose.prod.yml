@@ -1,7 +1,7 @@
 version: '2'
 services:
   data:
-    image: glycoinfo.org:5000/glytoucan_wurcstocomposition:v${VERSION}
+    image: glycoinfo.org:5000/basecomposition:v${VERSION}
     command: echo "binaries ready"
     volumes:
       - /data
